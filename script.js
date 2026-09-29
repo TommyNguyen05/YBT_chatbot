@@ -23,7 +23,7 @@
      5. Renderer                round-capped SVG strokes, knot, eyes, accents
 
    Public API (window.balloon)
-     balloon.setState('idle' | 'listening' | 'thinking' | 'working' | 'complete')
+     balloon.setState('idle' | 'listening' | 'working' | 'complete')
      balloon.play([{ state, hold }, …])    timed sequence on the animation clock
      balloon.on('statechange', fn)
    ============================================================================= */
@@ -348,55 +348,9 @@
       },
     },
 
-    thinking: {
-      label: 'Thinking',
-      caption: 'Processing and reasoning.',
-      spins: true,
-      // Form the coil first, then start spinning (like a loader spinning up).
-      spin: (t) => 2.4 * smoothstep(0.55, 1.3, t),
-      enter(layer, av) {
-        av.blink();
-      },
-      pose(P, t, env) {
-        const m = env.motion;
-        const psi = env.spin;
-        const cx = 0;
-        const cy = -6 + 4 * m * Math.sin(2.2 * t);
-        layHead(P, cx, cy, 0, 1, 2.15, 45, 1.04, 1.04);
-        // The tail chases the head around a coil — the balloon is the loader.
-        // The coil stretches longer / shorter (elastic), its tip curls in and a
-        // ripple runs along the body.
-        const chase = Math.sin(3.9 * t);
-        const span = 5.25 + 0.5 * chase * m;
-        const ring = 97 + 4 * m * Math.sin(2.2 * t + 1);
-        const curl = 0.5 + 0.5 * Math.sin(3.9 * t - 1.2);
-        const th0 = psi + NECK_ANGLE;
-        layTube(P, (u, out) => {
-          let rho = ring * (1 - Math.exp(-u / 0.075)) * (1 + 0.13 * u);
-          rho += 5 * m * Math.sin(13 * u - 6.5 * t) * smoothstep(0.12, 0.35, u);
-          const tip = smoothstep(0.8, 1, u);
-          rho -= 28 * curl * tip;
-          const th = th0 + span * u + 0.3 * curl * tip;
-          out[0] = cx + rho * Math.cos(th);
-          out[1] = cy + rho * Math.sin(th);
-        });
-        for (let i = HEAD_N; i < N; i++) P.p[i] = 1 - 0.4 * smoothstep(0.84, 1, S[i]);
-        P.cx = cx;
-        P.cy = cy;
-        P.air = 0.74;
-        P.coiled = 1;
-        P.stiff = 1.3;
-        const f = P.face;
-        clearFace(f);
-        f.oy = 0;
-        f.track = 0.85; // watching its own tail go round
-        f.focus = 0.2;
-      },
-    },
-
     working: {
       label: 'Working',
-      caption: 'Actively working on your request.',
+      caption: 'Thinking and working on your request.',
       spins: true,
       // A ratcheting turn: steady rotation plus a surge on every beat.
       spin: (t) => 1.0 + 1.4 * Math.pow(Math.max(0, Math.sin(5.2 * t)), 3),
@@ -479,7 +433,7 @@
   //    stagger  fraction of the duration spread along the balloon
   //    order    'head'  the change starts at the head and runs to the knot
   //             'tail'  it starts at the knot (untwisting from the free end)
-  //    kick     optional rig impulse at the start (anticipation, twist, perk)
+  //    kick     optional rig impulse at the start (anticipation, perk, release)
   // ───────────────────────────────────────────────────────────────────────────
 
   const INSTANT = { mode: 'linear', dur: 0, stagger: 0, order: 'head', ease: 'linear' };
@@ -488,13 +442,9 @@
     'idle>listening': { mode: 'linear', dur: 0.55, stagger: 0.2, order: 'head', ease: 'outBack', kick: 'perk' },
     'listening>idle': { mode: 'linear', dur: 0.8, stagger: 0.15, order: 'head', ease: 'inOutCubic' },
     'complete>idle': { mode: 'linear', dur: 0.9, stagger: 0.1, order: 'head', ease: 'inOutCubic' },
-    'thinking>working': { mode: 'polar', dur: 1.3, stagger: 0.55, order: 'head', ease: 'inOutCubic', kick: 'twist' },
     // untwist (the loops unwind first) → retract → inflate back into the round balloon
     'working>complete': { mode: 'polar', dur: 1.15, stagger: 0.4, order: 'tail', lead: -0.35, ease: 'inOutCubic', kick: 'release' },
-    'thinking>*': { mode: 'polar', dur: 1.0, stagger: 0.42, order: 'tail', ease: 'inOutCubic', kick: 'release' },
     'working>*': { mode: 'polar', dur: 1.15, stagger: 0.45, order: 'tail', ease: 'inOutCubic', kick: 'release' },
-    // stretch (the bottom pulls into a peanut) → bend → curl into the coil
-    '*>thinking': { mode: 'polar', dur: 1.05, stagger: 0.35, order: 'tail', lead: 0.35, headAt: 0.25, ease: 'inOutCubic', kick: 'anticipate' },
     // stretch → twist the whole length into loops → unfurl into the flower
     '*>working': { mode: 'polar', dur: 1.35, stagger: 0.4, order: 'tail', lead: 0.35, headAt: 0.25, ease: 'inOutCubic', kick: 'anticipate' },
     '*>listening': { mode: 'linear', dur: 0.6, stagger: 0.2, order: 'head', ease: 'outBack', kick: 'perk' },
@@ -519,10 +469,6 @@
     anticipate(av) {
       av.rig.squash.kick(-1.5); // crouch before the stretch
       av.rig.hop.kick(40);
-    },
-    twist(av) {
-      av.env.spinVel += 2.4; // wind-up spin as the loops are twisted in
-      av.rig.squash.kick(-0.7);
     },
     release(av) {
       av.rig.squash.kick(0.6);
@@ -1258,7 +1204,7 @@
         }
       }
 
-      // Shared rotation phase for the coiled states (thinking → working).
+      // Shared rotation phase for the spinning flower.
       const top = this.mixer.top;
       const sp = top.motion.spin || 0;
       const spinTarget = (typeof sp === 'function' ? sp(now - top.t0) : sp) * (0.5 + 0.5 * env.motion);
@@ -1423,8 +1369,7 @@
 
   const SEND_SEQUENCE = [
     { state: 'listening', hold: 0.9 },
-    { state: 'thinking', hold: 2.4 },
-    { state: 'working', hold: 2.8 },
+    { state: 'working', hold: 4.2 },
     { state: 'complete' }, // returns to idle by itself
   ];
 
@@ -1538,7 +1483,7 @@
   rigToggle.addEventListener('change', () => balloon.setDebug(rigToggle.checked));
 
   // Keys 1–5 switch states (when not typing in the composer).
-  const KEY_STATES = ['idle', 'listening', 'thinking', 'working', 'complete'];
+  const KEY_STATES = ['idle', 'listening', 'working', 'complete'];
   window.addEventListener('keydown', (e) => {
     if (e.target === input || e.metaKey || e.ctrlKey || e.altKey) return;
     const i = Number(e.key) - 1;
@@ -1557,7 +1502,7 @@
 
   window.BalloonAI = {
     userTyping: () => balloon.setState('listening'),
-    requestSent: () => balloon.setState('thinking'),
+    requestSent: () => balloon.setState('working'),
     working: () => balloon.setState('working'),
     responseDone: () => balloon.setState('complete'),
     reset: () => balloon.setState('idle'),
