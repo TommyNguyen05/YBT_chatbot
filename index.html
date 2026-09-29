@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Balloon — Motion State Prototype</title>
+    <meta
+      name="description"
+      content="A balloon-shaped AI avatar that communicates idle, listening, thinking, working and complete states through one continuously transforming balloon."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="masthead">
+        <div class="masthead-copy">
+          <p class="eyebrow">Concept 7 · Balloon motion state system</p>
+          <h1>One balloon, fluid states.</h1>
+        </div>
+        <div class="inspect" role="group" aria-label="Inspect the motion">
+          <label class="toggle">
+            <input type="checkbox" id="toggle-slowmo" />
+            <span>Slow-mo</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-rig" />
+            <span>Show rig</span>
+          </label>
+        </div>
+      </header>
+
+      <section class="stage-card" aria-label="Avatar">
+        <div class="readout" aria-live="polite">
+          <span class="readout-dot" aria-hidden="true"></span>
+          <span class="readout-name" id="state-name">Idle</span>
+          <span class="readout-caption" id="state-caption">Calm, ready for input.</span>
+        </div>
+
+        <!-- The balloon is drawn into this SVG by script.js -->
+        <svg
+          id="balloon-stage"
+          class="stage"
+          viewBox="-230 -230 460 460"
+          role="img"
+          aria-labelledby="stage-title"
+        >
+          <title id="stage-title">Balloon assistant avatar</title>
+          <circle class="backdrop" cx="0" cy="0" r="206" />
+        </svg>
+
+        <p class="stage-hint">Tip: poke the balloon.</p>
+      </section>
+
+      <nav class="flow" aria-label="Avatar state">
+        <div class="flow-steps">
+          <button type="button" class="flow-step" data-state="idle" aria-pressed="true">Idle</button>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-state="listening" aria-pressed="false">Listening</button>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-state="thinking" aria-pressed="false">Thinking</button>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-state="working" aria-pressed="false">Working</button>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-state="complete" aria-pressed="false">Complete</button>
+        </div>
+        <button type="button" class="play" id="play-sequence">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" /></svg>
+          Play full sequence
+        </button>
+      </nav>
+
+      <section class="chat" aria-label="Chat">
+        <ol class="chat-log" id="chat-log" aria-live="polite"></ol>
+        <form class="composer" id="composer" autocomplete="off">
+          <input
+            id="composer-input"
+            type="text"
+            placeholder="Message the balloon…"
+            aria-label="Message"
+            maxlength="240"
+          />
+          <button type="submit" id="composer-send">Send</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
