@@ -1,0 +1,488 @@
+/* Balloon — motion state prototype
+   The page stays quiet on purpose: the balloon carries the personality. */
+
+:root {
+  --bg: #fff9ef;
+  --card: #fffdf8;
+  --cream: #fef6e2;
+  --cream-line: #f7e3bc;
+  --yellow: #febe2c;
+  --yellow-deep: #f3a61a;
+  --ink: #111845;
+  --ink-2: #4b5283;
+  --ink-3: #8a8fb0;
+  --focus: #3b5bdb;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --font: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% 18%, #fff4df 0%, rgba(255, 244, 223, 0) 70%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.app {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(24px, 4.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.inspect {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 9px;
+  border: 1px solid var(--cream-line);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle input {
+  appearance: none;
+  width: 26px;
+  height: 16px;
+  margin: 0;
+  border-radius: var(--radius-pill);
+  background: #eadcc0;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(17, 24, 69, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.toggle input:checked {
+  background: var(--yellow-deep);
+}
+
+.toggle input:checked::after {
+  transform: translateX(10px);
+}
+
+.toggle input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Stage ────────────────────────────────────────────────────────────── */
+
+.stage-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--cream-line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 18px 40px -28px rgba(120, 80, 10, 0.35);
+  padding: 14px;
+  overflow: hidden;
+}
+
+.readout {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  pointer-events: none;
+}
+
+.readout-dot {
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 0 4px rgba(255, 191, 47, 0.22);
+  animation: readout-pulse 2.4s ease-in-out infinite;
+}
+
+.readout-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.readout-caption {
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.readout.is-changing .readout-name,
+.readout.is-changing .readout-caption {
+  animation: readout-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes readout-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes readout-pulse {
+  50% {
+    box-shadow: 0 0 0 7px rgba(255, 191, 47, 0.08);
+  }
+}
+
+.stage {
+  display: block;
+  width: min(100%, 60vh, 560px);
+  min-width: 260px;
+  aspect-ratio: 1;
+  height: auto;
+  margin: 18px auto 0;
+  overflow: visible;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stage .backdrop {
+  fill: var(--cream);
+}
+
+.stage .balloon-body {
+  cursor: pointer;
+}
+
+.stage-hint {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+/* ── State flow (buttons) ─────────────────────────────────────────────── */
+
+.flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.flow-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.flow-arrow {
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+button {
+  font: inherit;
+}
+
+.flow-step {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--cream-line);
+  border-radius: var(--radius-pill);
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.flow-step:hover {
+  background: #ffe9c0;
+}
+
+.flow-step:active {
+  transform: scale(0.95);
+}
+
+.flow-step[aria-pressed="true"] {
+  background: var(--yellow);
+  border-color: var(--yellow-deep);
+  transform: translateY(-1px);
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 18px 8px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1),
+    background 0.2s ease;
+}
+
+.play svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--yellow);
+}
+
+.play:hover {
+  background: #1d2660;
+}
+
+.play:active {
+  transform: scale(0.96);
+}
+
+.play[aria-busy="true"] {
+  background: #2a3272;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Chat ─────────────────────────────────────────────────────────────── */
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 164px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.chat-log:empty {
+  display: none;
+}
+
+.msg {
+  max-width: 82%;
+  padding: 9px 14px;
+  border-radius: 18px;
+  font-size: 15px;
+  animation: msg-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.msg-user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+
+.msg-bot {
+  align-self: flex-start;
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--cream-line);
+  border-bottom-left-radius: 6px;
+}
+
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  border: 1px solid var(--cream-line);
+  box-shadow: 0 10px 28px -22px rgba(120, 80, 10, 0.45);
+}
+
+.composer:focus-within {
+  border-color: var(--yellow-deep);
+}
+
+.composer input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.composer input::placeholder {
+  color: var(--ink-3);
+}
+
+.composer input:focus {
+  outline: none;
+}
+
+.composer button {
+  min-height: 42px;
+  padding: 8px 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1),
+    background 0.2s ease;
+}
+
+.composer button:hover {
+  background: #ffb514;
+}
+
+.composer button:active {
+  transform: scale(0.95);
+}
+
+.composer button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ── Small screens ────────────────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .app {
+    padding-top: 16px;
+    gap: 14px;
+  }
+
+  .readout {
+    top: 14px;
+    left: 16px;
+  }
+
+  .readout-name {
+    font-size: 19px;
+  }
+
+  .readout-caption {
+    font-size: 14px;
+  }
+
+  .stage {
+    margin-top: 34px;
+  }
+
+  .flow-arrow {
+    display: none;
+  }
+
+  .flow-step {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .play {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .readout-dot,
+  .msg,
+  .readout.is-changing .readout-name,
+  .readout.is-changing .readout-caption {
+    animation: none;
+  }
+}
